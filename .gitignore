@@ -1,0 +1,31 @@
+# Large data files
+excalibur_runs.json
+ops.00.sql
+ops.00.bck
+data.rows.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gradio
+flagged/
