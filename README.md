@@ -1,2 +1,105 @@
-# ESP-AI
-AI for ESP
+# ESP-AI: EXCALIBUR Natural Language Interface
+
+AI-powered natural language interface for the EXCALIBUR exoplanet spectroscopy pipeline. Query the database using conversational language instead of complex filters.
+
+## Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the combined interface (recommended)
+python main.py
+```
+
+Visit `http://localhost:7860` in your browser.
+
+## Interface Modes
+
+### 1. Combined Interface (Default)
+```bash
+python main.py
+```
+Tabbed interface with both chatbot and query modes at `http://localhost:7860`
+
+### 2. Chatbot Only
+```bash
+python main_chatbot.py
+```
+Conversational assistant at `http://localhost:7861`
+
+### 3. Query Interface Only
+```bash
+python main_advanced.py
+```
+Direct query interface at `http://localhost:7860`
+
+### 4. Specific Mode
+```bash
+python main.py chatbot   # Chatbot mode
+python main.py query     # Query mode
+```
+
+## Example Queries
+
+**Chatbot Mode:**
+- "Hello, what can you do?"
+- "Show me all JWST transit observations"
+- "Find eclipse runs for GJ 436"
+
+**Query Mode:**
+- "All transit whitelight runs"
+- "Eclipse observations for GJ 436"
+- "Observations with HST-WFC3-IR-G141-SCAN"
+
+## Requirements
+
+- Python 3.8+
+- [Ollama](https://ollama.ai) with models:
+  - `codellama` for query generation
+  - `llama3.2` for chatbot conversations
+- EXCALIBUR data (extracted from Dawgie database)
+
+## Data Setup
+
+### From Dawgie PostgreSQL Backup
+
+```bash
+# 1. Export your Dawgie database to SQL
+pg_dump -U username dbname > ops.00.sql
+
+# 2. Extract EXCALIBUR data to JSON
+python extract_excalibur_from_backup.py
+
+# 3. This creates excalibur_runs.json with all run metadata
+```
+
+The extraction script parses the Dawgie database structure and creates a JSON file with:
+- 14M+ runs from 2,000+ targets
+- Task, algorithm, state vector, and value mappings
+- Blob references for detailed data
+
+## Architecture
+
+- **`main.py`**: Combined interface launcher
+- **`main_chatbot.py`**: Chatbot-only launcher
+- **`main_advanced.py`**: Query-only launcher
+- **`ui/chatbot_interface.py`**: Conversational assistant UI
+- **`ui/advanced_interface.py`**: Query filtering UI
+- **`ai/query_translator.py`**: Natural language → Python code generator
+- **`ai/prompts.py`**: System prompts for AI models
+- **`data/load_excalibur_data.py`**: Loads EXCALIBUR JSON data
+- **`extract_excalibur_from_backup.py`**: Extracts data from Dawgie backup
+
+## Safety
+
+All generated code is validated:
+- No imports or function definitions allowed
+- Only safe list comprehensions and expressions
+- Restricted builtins during execution
+- Code is displayed before execution
+
+## Documentation
+
+- **`CHATBOT.md`**: Detailed chatbot features and usage
+- **`START.md`**: Quick start guide
