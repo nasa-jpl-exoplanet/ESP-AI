@@ -85,13 +85,23 @@ def discover_excalibur_data(base_path):
     if calibration_json:
         data["calibration"].update(load_json(calibration_json))
     
-    rows_json = latest_json(base_path, "data.rows*.json")
-    if rows_json:
-        rows_data = load_json(rows_json)
+    # Look for excalibur_runs.json (new format) or data.rows*.json (old format)
+    excalibur_json = os.path.join(base_path, "excalibur_runs.json")
+    if os.path.exists(excalibur_json):
+        rows_data = load_json(excalibur_json)
         if isinstance(rows_data, list):
             data["rows"] = rows_data
         elif isinstance(rows_data, dict) and "rows" in rows_data:
             data["rows"] = rows_data["rows"]
+    else:
+        # Fallback to old format
+        rows_json = latest_json(base_path, "data.rows*.json")
+        if rows_json:
+            rows_data = load_json(rows_json)
+            if isinstance(rows_data, list):
+                data["rows"] = rows_data
+            elif isinstance(rows_data, dict) and "rows" in rows_data:
+                data["rows"] = rows_data["rows"]
     
     return data
 

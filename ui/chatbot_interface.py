@@ -6,6 +6,7 @@ A conversational AI assistant that can chat and query the EXCALIBUR database.
 import gradio as gr
 from typing import List, Tuple
 import ollama
+import random
 
 from ai.query_translator import generate_code, execute_query
 from data.load_excalibur_data import load_excalibur_data
@@ -63,10 +64,6 @@ def format_results_as_text(rows: List[dict], limit: int = 10) -> str:
 def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
     """Process user message and return response"""
     
-    print(f"[DEBUG] Received message: {message}")
-    print(f"[DEBUG] History type: {type(history)}")
-    print(f"[DEBUG] History: {history}")
-    
     try:
         # Check if this is a database query
         if is_database_query(message):
@@ -98,12 +95,16 @@ def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
         
         else:
             # General conversation - use simple rule-based responses
-            print(f"[DEBUG] Not a database query, using conversation mode")
             message_lower = message.lower()
             
-            if any(greeting in message_lower for greeting in ['hello', 'hi', 'hey', 'greetings']):
-                print(f"[DEBUG] Detected greeting")
-                return "Hello! 👋 I'm the EXCALIBUR assistant. I can help you query the exoplanet database or answer questions about the pipeline. What would you like to know?"
+            if any(greeting in message_lower for greeting in ['hello', 'hi', 'hey', 'greetings', 'yo', "what's up", 'whats up', 'sup', 'howdy']):
+                greetings = [
+                    "Hello! 👋 I'm the EXCALIBUR assistant. I can help you query the exoplanet database or answer questions about the pipeline. What would you like to know?",
+                    "Hey there! 👋 I'm here to help you explore EXCALIBUR data. Want to query the database or learn about exoplanets?",
+                    "Hi! 🔭 Ready to dive into some exoplanet data? Ask me anything about EXCALIBUR observations!",
+                    "What's up! 👋 I can help you search through 14M+ exoplanet observations. What are you looking for?",
+                ]
+                return random.choice(greetings)
             
             elif any(word in message_lower for word in ['help', 'what can you do', 'capabilities']):
                 return """I can help you with:
@@ -119,10 +120,22 @@ def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
 Try asking me something!"""
             
             elif 'thank' in message_lower:
-                return "You're welcome! Let me know if you need anything else. 😊"
+                thanks_responses = [
+                    "You're welcome! Let me know if you need anything else. 😊",
+                    "Happy to help! Feel free to ask more questions anytime. 🔭",
+                    "No problem! I'm here if you need more data. 👍",
+                    "Anytime! Let me know what else you'd like to explore. ✨",
+                ]
+                return random.choice(thanks_responses)
             
             elif any(word in message_lower for word in ['bye', 'goodbye', 'see you']):
-                return "Goodbye! Feel free to come back anytime you need help with EXCALIBUR data. 👋"
+                goodbye_responses = [
+                    "Goodbye! Feel free to come back anytime you need help with EXCALIBUR data. 👋",
+                    "See you later! Happy exoplanet hunting! 🔭",
+                    "Take care! Come back if you need more data. 👋",
+                    "Bye! Don't hesitate to return for more queries. ✨",
+                ]
+                return random.choice(goodbye_responses)
             
             elif 'excalibur' in message_lower and '?' in message:
                 return """EXCALIBUR is the Exoplanet Spectroscopy Calibration and Analysis Library. It's a pipeline for processing exoplanet observations from telescopes like HST and JWST.
