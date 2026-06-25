@@ -228,7 +228,6 @@ def create_chatbot_interface():
                     "What can you do?",
                     "Show me all JWST transit observations",
                     "Find HST data for GJ 436",
-                    "How many whitelight runs are there?",
                     "List all eclipse observations",
                 ],
                 inputs=msg,
