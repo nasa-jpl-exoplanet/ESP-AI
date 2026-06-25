@@ -18,18 +18,26 @@ print("Loading EXCALIBUR data...")
 EXCALIBUR_DATA = load_excalibur_data(EXCALIBUR_OUTPUT_PATH)
 print(f"✓ Loaded {len(EXCALIBUR_DATA.get('rows', []))} runs")
 
-SYSTEM_PROMPT = """You are a helpful AI assistant for the EXCALIBUR exoplanet spectroscopy pipeline.
+# Store user preferences (nickname, etc.)
+USER_PREFERENCES = {}
+
+SYSTEM_PROMPT = """You are a helpful and friendly AI assistant for the EXCALIBUR exoplanet spectroscopy pipeline.
 
 You can help users in two ways:
-1. Answer general questions about EXCALIBUR, exoplanets, and data analysis
+1. Have natural, casual conversations - respond to greetings, questions about how you're doing, compliments, jokes, etc. Also be able toanswer general questions about EXCALIBUR, exoplanets, and data analysis
 2. Query the EXCALIBUR database when users ask about specific runs, targets, or observations
 
-When a user asks a database query (like "show me all JWST transit runs" or "what HST data do we have for GJ 436"), 
-respond with a friendly message AND generate a Python query to filter the data.
+Your personality:
+- Friendly, enthusiastic, and conversational
+- Passionate about exoplanets and space science
+- Use emojis occasionally (🔭 🌟 🚀 😊 🤖)
+- Remember context from the conversation
+- Be genuine and not overly formal
 
-For general conversation (like "hello", "how are you", "what can you do"), just respond naturally.
+When users greet you, ask how you are, give compliments, or chat casually, respond naturally and engagingly.
+When users want data, help them query the 14M+ EXCALIBUR observations.
 
-Be helpful, concise, and friendly!"""
+Be helpful, concise, and personable!"""
 
 def is_database_query(message: str) -> bool:
     """Determine if the message is a database query or general conversation"""
@@ -64,7 +72,21 @@ def format_results_as_text(rows: List[dict], limit: int = 10) -> str:
 def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
     """Process user message and return response"""
     
+    # Get user's nickname if set
+    nickname = USER_PREFERENCES.get('nickname', '')
+    greeting_name = f" {nickname}" if nickname else ""
+    
     try:
+        # Check for nickname setting FIRST (before database query check)
+        message_lower = message.lower()
+        if 'call me' in message_lower:
+            import re
+            match = re.search(r'call me ([\w]+)', message_lower)
+            if match:
+                nickname = match.group(1).capitalize()
+                USER_PREFERENCES['nickname'] = nickname
+                return f"Got it! I'll call you {nickname} from now on. 😊 How can I help you today?"
+        
         # Check if this is a database query
         if is_database_query(message):
             try:
@@ -94,89 +116,50 @@ def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
                 return f"I tried to query the database but encountered an error:\n\n```\n{error_details}\n```\n\nCould you rephrase your question?"
         
         else:
-            # General conversation - use simple rule-based responses
-            message_lower = message.lower()
-            
-            if any(greeting in message_lower for greeting in ['hello', 'hi', 'hey', 'greetings', 'yo', "what's up", 'whats up', 'sup', 'howdy']):
-                greetings = [
-                    "Hello! 👋 I'm the EXCALIBUR assistant. I can help you query the exoplanet database or answer questions about the pipeline. What would you like to know?",
-                    "Hey there! 👋 I'm here to help you explore EXCALIBUR data. Want to query the database or learn about exoplanets?",
-                    "Hi! 🔭 Ready to dive into some exoplanet data? Ask me anything about EXCALIBUR observations!",
-                    "What's up! 👋 I can help you search through 14M+ exoplanet observations. What are you looking for?",
-                ]
-                return random.choice(greetings)
-            
-            elif any(word in message_lower for word in ['help', 'what can you do', 'capabilities']):
-                return """I can help you with:
-
-1. **Database queries**: Ask me things like:
-   - "Show me all JWST transit observations"
-   - "What HST data do we have for GJ 436?"
-   - "Find all whitelight runs"
-   - "How many eclipse observations are there?"
-
-2. **General questions**: Ask about EXCALIBUR, exoplanets, or data analysis
-
-Try asking me something!"""
-            
-            elif 'thank' in message_lower:
-                thanks_responses = [
-                    "You're welcome! Let me know if you need anything else. 😊",
-                    "Happy to help! Feel free to ask more questions anytime. 🔭",
-                    "No problem! I'm here if you need more data. 👍",
-                    "Anytime! Let me know what else you'd like to explore. ✨",
-                ]
-                return random.choice(thanks_responses)
-            
-            elif any(word in message_lower for word in ['bye', 'goodbye', 'see you']):
-                goodbye_responses = [
-                    "Goodbye! Feel free to come back anytime you need help with EXCALIBUR data. 👋",
-                    "See you later! Happy exoplanet hunting! 🔭",
-                    "Take care! Come back if you need more data. 👋",
-                    "Bye! Don't hesitate to return for more queries. ✨",
-                ]
-                return random.choice(goodbye_responses)
-            
-            elif 'excalibur' in message_lower and '?' in message:
-                return """EXCALIBUR is the Exoplanet Spectroscopy Calibration and Analysis Library. It's a pipeline for processing exoplanet observations from telescopes like HST and JWST.
-
-It handles tasks like:
-- Transit spectroscopy
-- Eclipse observations  
-- Phase curve analysis
-- Whitelight curve extraction
-- Spectral analysis
-
-Want to query the database for specific observations?"""
-            
+            # General conversation - use LLM for natural responses
+            # Build nickname context if set
+            if USER_PREFERENCES.get('nickname'):
+                nickname_context = f"\n\nNote: The user's name is {USER_PREFERENCES['nickname']}. Use their name occasionally in responses."
             else:
-                # Try to use LLM if available, otherwise give helpful fallback
+                nickname_context = ""
+            
+            # Use LLM for all conversational responses
+            try:
+                # Build conversation history for context
+                system_prompt = SYSTEM_PROMPT + nickname_context
+                messages = [{"role": "system", "content": system_prompt}]
+                
+                for user_msg, assistant_msg in history:
+                    messages.append({"role": "user", "content": user_msg})
+                    messages.append({"role": "assistant", "content": assistant_msg})
+                
+                messages.append({"role": "user", "content": message})
+                
+                # Try llama3.2 first, fall back to codellama if not available
                 try:
-                    # Build conversation history for context
-                    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-                    
-                    for user_msg, assistant_msg in history:
-                        messages.append({"role": "user", "content": user_msg})
-                        messages.append({"role": "assistant", "content": assistant_msg})
-                    
-                    messages.append({"role": "user", "content": message})
-                    
-                    # Get response from LLM
                     response = ollama.chat(
                         model="llama3.2",
                         messages=messages
                     )
-                    
-                    return response["message"]["content"]
-                    
-                except Exception as e:
-                    return f"""I'm not quite sure how to respond to that. I work best with:
+                except Exception as model_error:
+                    if "not found" in str(model_error):
+                        # Fall back to codellama
+                        response = ollama.chat(
+                            model="codellama",
+                            messages=messages
+                        )
+                    else:
+                        raise
+                
+                return response["message"]["content"]
+                
+            except Exception as e:
+                return f"""I'm having trouble connecting to my conversation system right now. 
 
-- **Greetings**: "hello", "hi"
-- **Help requests**: "what can you do?"
-- **Database queries**: "show me JWST data", "find transit runs"
-
-Try one of those, or ask me to query the database!
+I can still help you query the EXCALIBUR database! Try asking:
+- "Show me all JWST transit observations"
+- "Find HST data for GJ 436"
+- "How many whitelight runs are there?"
 
 (Error: {str(e)})"""
     
