@@ -1,5 +1,6 @@
 # Large data files
 excalibur_runs.json
+excalibur_runs.pkl
 ops.00.sql
 ops.00.bck
 data.rows.json

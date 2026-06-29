@@ -35,8 +35,12 @@ def parse_copy_data(backup_file, table_name):
     return data
 
 def main():
-    backup_file = '/Users/enguyen/ESP-AI/ops.00.sql'
-    output_file = '/Users/enguyen/ESP-AI/excalibur_runs.json'
+    import os
+    # Get the project root directory (parent of scripts/)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    backup_file = os.path.join(project_root, 'ops.00.sql')
+    output_file = os.path.join(project_root, 'excalibur_runs.json')
     
     print("Extracting EXCALIBUR data from Dawgie backup...")
     print(f"Input: {backup_file}")

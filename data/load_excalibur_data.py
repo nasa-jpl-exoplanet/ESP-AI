@@ -6,6 +6,13 @@ import glob
 import pickle
 from pathlib import Path
 
+# Try to use orjson for faster JSON parsing, fall back to standard json
+try:
+    import orjson
+    USE_ORJSON = True
+except ImportError:
+    USE_ORJSON = False
+
 def latest_json(path, pattern):
     """Find latest JSON file matching pattern"""
     files = sorted(
@@ -15,12 +22,17 @@ def latest_json(path, pattern):
     return files[-1] if files else None
 
 def load_json(path):
-    """Load JSON file safely"""
+    """Load JSON file safely with orjson for speed"""
     if not path or not os.path.exists(path):
         return {}
     try:
-        with open(path, "r") as f:
-            return json.load(f)
+        if USE_ORJSON:
+            # orjson is 2-3x faster than standard json
+            with open(path, "rb") as f:
+                return orjson.loads(f.read())
+        else:
+            with open(path, "r") as f:
+                return json.load(f)
     except Exception:
         return {}
 
@@ -85,9 +97,19 @@ def discover_excalibur_data(base_path):
     if calibration_json:
         data["calibration"].update(load_json(calibration_json))
     
-    # Look for excalibur_runs.json (new format) or data.rows*.json (old format)
+    # Look for pickle first (fastest), then JSON
+    # Priority: excalibur_runs.pkl > excalibur_runs.json > data.rows*.json
+    excalibur_pkl = os.path.join(base_path, "excalibur_runs.pkl")
     excalibur_json = os.path.join(base_path, "excalibur_runs.json")
-    if os.path.exists(excalibur_json):
+    
+    if os.path.exists(excalibur_pkl):
+        # Pickle is 5-10x faster for large files
+        rows_data = load_pickle(excalibur_pkl)
+        if isinstance(rows_data, list):
+            data["rows"] = rows_data
+        elif isinstance(rows_data, dict) and "rows" in rows_data:
+            data["rows"] = rows_data["rows"]
+    elif os.path.exists(excalibur_json):
         rows_data = load_json(excalibur_json)
         if isinstance(rows_data, list):
             data["rows"] = rows_data

@@ -75,8 +75,9 @@ def generate_code(question):
     code = re.sub(r'r\.get\s*\(\s*["\']sv["\']\s*\)\s*==\s*["\']hst["\']', '"hst" in r.get("sv","").lower()', code, flags=re.IGNORECASE)
     
     # Fix sv.lower()=="jwst" or sv.lower()=="hst" - should use substring match
-    code = re.sub(r'r\.get\s*\(\s*["\']sv["\']\s*\)\s*\.lower\s*\(\s*\)\s*==\s*["\']jwst["\']', '"jwst" in r.get("sv","").lower()', code, flags=re.IGNORECASE)
-    code = re.sub(r'r\.get\s*\(\s*["\']sv["\']\s*\)\s*\.lower\s*\(\s*\)\s*==\s*["\']hst["\']', '"hst" in r.get("sv","").lower()', code, flags=re.IGNORECASE)
+    # Handle various formats: r.get("sv").lower(), r.get("sv","").lower(), r.get("sv",**).lower()
+    code = re.sub(r'r\.get\s*\(\s*["\']sv["\']\s*(?:,\s*[^)]+)?\)\s*\.lower\s*\(\s*\)\s*==\s*["\']jwst["\']', '"jwst" in r.get("sv","").lower()', code, flags=re.IGNORECASE)
+    code = re.sub(r'r\.get\s*\(\s*["\']sv["\']\s*(?:,\s*[^)]+)?\)\s*\.lower\s*\(\s*\)\s*==\s*["\']hst["\']', '"hst" in r.get("sv","").lower()', code, flags=re.IGNORECASE)
     
     if code != original_code:
         print(f"CODE FIXED:")
