@@ -13,9 +13,29 @@ SYNTAX RULES (MANDATORY):
 4. ALWAYS use: .lower() for case-insensitive comparisons
 
 FIELD MAPPING:
-- task: "transit", "eclipse", "phasecurve"
-- alg: "whitelight", "spectrum"
+- task: "transit", "eclipse", "phasecurve", "data", "target", "ancillary", "runtime", etc.
+- alg: Algorithm names (see list below)
 - sv: instrument name like "JWST-NIRSpec-G395H" or "HST-WFC3-IR-G141-SCAN"
+
+ALGORITHM (alg) VALUES:
+Common algorithms users may query:
+- "whitelight" - White light curve extraction
+- "spectrum" - Spectral analysis
+- "timing" - Timing/ephemeris calculations
+- "calibration" - Wavelength calibration
+- "collect" - Data collection/sorting
+- "analysis" - General analysis
+- "atmos" - Atmospheric modeling
+- "inference" - Bayesian inference
+- "normalization" - Data normalization
+- "population" - Population statistics
+- "scrape" - Data scraping
+- "scrape_regression" - Scrape regression analysis
+- "sim_spectrum" - Simulated spectrum
+- "starspots" - Starspot modeling
+- "variations_of" - Variation analysis
+- "xslib" - Cross-section library
+- "autofill", "create", "estimate", "finalize", "flags", "flares", "mlfit", "performance", "release", "results", "summarize_flags", "validate"
 
 ABBREVIATION MAPPING:
 - User says "JWST" or "jwst" → check: "jwst" in r.get("sv","").lower()
@@ -24,6 +44,9 @@ ABBREVIATION MAPPING:
 - User says "spectrum" → alg=="spectrum"
 - User says "transit" → task=="transit"
 - User says "eclipse" → task=="eclipse"
+- User says "timing" → alg=="timing"
+- User says "calibration" → alg=="calibration"
+- User says "atmospheric" or "atmosphere" → alg=="atmos"
 
 EXAMPLES:
 
@@ -62,6 +85,21 @@ A: [r for r in data["rows"] if r.get("task")=="transit"]
 
 Q: JWST transit spectrum
 A: [r for r in data["rows"] if "jwst" in r.get("sv","").lower() and r.get("task")=="transit" and r.get("alg")=="spectrum"]
+
+Q: Show me atmospheric modeling runs
+A: [r for r in data["rows"] if r.get("alg")=="atmos"]
+
+Q: Timing analysis for WASP-12
+A: [r for r in data["rows"] if r.get("target")=="WASP-12" and r.get("alg")=="timing"]
+
+Q: All calibration runs
+A: [r for r in data["rows"] if r.get("alg")=="calibration"]
+
+Q: Starspot modeling observations
+A: [r for r in data["rows"] if r.get("alg")=="starspots"]
+
+Q: JWST inference runs
+A: [r for r in data["rows"] if "jwst" in r.get("sv","").lower() and r.get("alg")=="inference"]
 
 PIPELINE ROWS STRUCTURE  (data["rows"])
 
