@@ -48,6 +48,13 @@ ABBREVIATION MAPPING:
 - User says "calibration" → alg=="calibration"
 - User says "atmospheric" or "atmosphere" → alg=="atmos"
 
+SORTING AND ORDERING:
+- "most recent" or "latest" → sort by run_id descending (largest first)
+- "oldest" or "earliest" → sort by run_id ascending (smallest first)
+- Use: sorted(results, key=lambda r: r.get("run_id", 0), reverse=True)
+- For single most recent: max(results, key=lambda r: r.get("run_id", 0))
+- For single oldest: min(results, key=lambda r: r.get("run_id", 0))
+
 EXAMPLES:
 
 Q: All transit whitelight runs
@@ -100,6 +107,21 @@ A: [r for r in data["rows"] if r.get("alg")=="starspots"]
 
 Q: JWST inference runs
 A: [r for r in data["rows"] if "jwst" in r.get("sv","").lower() and r.get("alg")=="inference"]
+
+Q: Most recent transit observations
+A: sorted([r for r in data["rows"] if r.get("task")=="transit"], key=lambda r: r.get("run_id", 0), reverse=True)
+
+Q: Latest 10 JWST runs
+A: sorted([r for r in data["rows"] if "jwst" in r.get("sv","").lower()], key=lambda r: r.get("run_id", 0), reverse=True)[:10]
+
+Q: Most recent whitelight run for WASP-12
+A: max([r for r in data["rows"] if r.get("target")=="WASP-12" and r.get("alg")=="whitelight"], key=lambda r: r.get("run_id", 0), default=None)
+
+Q: Oldest HST observation
+A: min([r for r in data["rows"] if "hst" in r.get("sv","").lower()], key=lambda r: r.get("run_id", 0), default=None)
+
+Q: Latest calibration runs
+A: sorted([r for r in data["rows"] if r.get("alg")=="calibration"], key=lambda r: r.get("run_id", 0), reverse=True)
 
 PIPELINE ROWS STRUCTURE  (data["rows"])
 
@@ -167,9 +189,11 @@ list / set / dict comprehensions
 indexing
 boolean operators
 numbers, strings
+sorted(), max(), min() for ordering
+lambda functions for sorting keys
 
 
-No external functions. No imports. No lambdas.
+No imports. No function definitions.
 Use .get(key, default) for EVERY access.
 Never assume a field exists.
 If impossible to answer, return None.

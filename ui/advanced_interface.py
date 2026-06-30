@@ -223,7 +223,7 @@ def create_advanced_interface():
             "Eclipse observations for GJ 436",
             "All spectrum runs",
             "Observations with HST-WFC3-IR-G141-SCAN",
-            "Count of transit vs eclipse observations",
+            "All JWST runs",
         ]
         
         with gr.Row():
