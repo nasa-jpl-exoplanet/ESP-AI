@@ -40,7 +40,9 @@ app.add_middleware(
 
 # Load EXCALIBUR data at startup
 logger.info("Loading EXCALIBUR data...")
-EXCALIBUR_DATA_PATH = os.getenv("EXCALIBUR_DATA_PATH", "/Users/enguyen/ESP-AI")
+# Default to current directory, or use environment variable
+EXCALIBUR_DATA_PATH = os.getenv("EXCALIBUR_DATA_PATH", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+logger.info(f"Data path: {EXCALIBUR_DATA_PATH}")
 EXCALIBUR_DATA = load_excalibur_data(EXCALIBUR_DATA_PATH)
 logger.info(f"✓ Loaded {len(EXCALIBUR_DATA.get('rows', []))} runs")
 
