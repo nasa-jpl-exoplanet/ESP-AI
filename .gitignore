@@ -30,3 +30,11 @@ Thumbs.db
 
 # Gradio
 flagged/
+
+# Personal reference docs (not for public repo)
+COMMIT_GUIDE.md
+docs/ESP_DOCKER_PATTERNS.md
+docs/SETUP.md
+docs/START.md
+docs/README.md
+docs/FRONTEND_INTEGRATION.md

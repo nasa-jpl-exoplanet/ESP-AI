@@ -1,0 +1,54 @@
+# ESP-AI Docker Compose
+# Based on ESP's pattern from esp/.docker/compose.yaml
+
+version: '3.8'
+
+services:
+  esp-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: esp-ai
+    environment:
+      # Port configuration
+      - ESP_AI_PORT=${ESP_AI_PORT:-10443}
+      
+      # SSL configuration (following ESP pattern)
+      - ESP_AI_SSL_KEY=/etc/ssl/server.key
+      - ESP_AI_SSL_CERT=/etc/ssl/server.pem
+      
+      # Data path
+      - EXCALIBUR_DATA_PATH=/app
+      
+      # User info
+      - USERNAME=${USER}
+    
+    ports:
+      # Testing: map host port 10443 to container port (configurable)
+      # Production: will be 443:443
+      - "${ESP_AI_PORT:-10443}:${ESP_AI_PORT:-10443}"
+    
+    volumes:
+      # SSL certificates (read-only, following ESP pattern)
+      - /etc/ssl:/etc/ssl:ro
+      - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro
+      - /usr/share/ca-certificates:/usr/share/ca-certificates:ro
+      
+      # EXCALIBUR data
+      - ${EXCALIBUR_DATA_PATH:-./}:/app:ro
+      
+      # Ollama models (persistent storage)
+      - ollama-data:/root/.ollama
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:${ESP_AI_PORT:-10443}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  ollama-data:
+    driver: local

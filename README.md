@@ -2,17 +2,31 @@
 
 AI-powered natural language interface for NASA JPL's EXCALIBUR exoplanet spectroscopy pipeline. Query 14M+ observations using natural language instead of complex filters.
 
+## Features
+
+- 🤖 **REST API** - HTTPS API for natural language queries
+- 💬 **Chatbot Interface** - Conversational assistant with context
+- 🔍 **Query Interface** - Direct database queries with natural language
+- 🚀 **Fast Performance** - Optimized data loading (pickle format, 2x faster)
+- 🔒 **Secure** - HTTPS, SSL/TLS support, audit logging
+- 🐳 **Docker Ready** - Containerized deployment
+
 ## Quick Start
+
+See **[docs/QUICKSTART.md](docs/QUICKSTART.md)** for detailed instructions.
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the combined interface (recommended)
-python main.py
+# Pull LLM models
+ollama pull codellama llama3.2
+
+# Run API (development mode)
+ESP_AI_DEV_MODE=true python3 api/server.py
 ```
 
-Visit `http://localhost:7860` in your browser.
+Visit `http://localhost:8000/docs` for API documentation.
 
 ## Interface Modes
 
@@ -96,29 +110,38 @@ The extraction script parses the Dawgie database structure and creates a JSON fi
 
 ```
 ESP-AI/
-├── main.py                    # Combined interface launcher
-├── main_chatbot.py           # Chatbot-only launcher  
-├── main_advanced.py          # Query-only launcher
-├── requirements.txt          # Python dependencies
+├── api/                       # REST API (NEW)
+│   ├── server.py             # FastAPI server
+│   └── README.md             # API documentation
 │
-├── ai/                       # AI/LLM components
-│   ├── query_translator.py  # Natural language → Python code
-│   └── prompts.py           # System prompts for models
+├── ai/                        # AI/LLM components
+│   ├── query_translator.py   # Natural language → Python code
+│   └── prompts.py            # System prompts for models
 │
-├── ui/                       # Gradio interfaces
-│   ├── chatbot_interface.py # Conversational assistant
+├── ui/                        # Gradio interfaces (legacy)
+│   ├── chatbot_interface.py  # Conversational assistant
 │   └── advanced_interface.py # Query filtering UI
 │
-├── data/                     # Data loading
+├── data/                      # Data loading
 │   └── load_excalibur_data.py # JSON/pickle data loader
 │
-├── scripts/                  # Utility scripts
+├── scripts/                   # Utility scripts
 │   ├── extract_excalibur_from_backup.py # SQL → JSON converter
-│   └── convert_to_pickle.py  # JSON → pickle converter (faster)
+│   └── convert_to_pickle.py   # JSON → pickle converter
 │
-└── docs/                     # Documentation
-    ├── CHATBOT.md           # Chatbot features guide
-    └── START.md             # Getting started guide
+├── docs/                      # Documentation
+│   ├── QUICKSTART.md         # Getting started
+│   ├── DEPLOYMENT.md         # Deploy to mentor0
+│   ├── CHATBOT.md            # Chatbot features
+│   └── ...                   # More docs
+│
+├── Dockerfile                 # Docker image
+├── docker-compose.yml         # Docker orchestration
+├── docker-entrypoint.sh       # Container startup script
+├── main.py                    # Combined Gradio launcher
+├── main_chatbot.py            # Chatbot-only launcher
+├── main_advanced.py           # Query-only launcher
+└── requirements.txt           # Python dependencies
 ```
 
 ## Safety
@@ -131,7 +154,9 @@ All generated code is validated:
 
 ## Documentation
 
-- **[docs/SETUP.md](docs/SETUP.md)** - Complete setup and installation guide
-- **[docs/CHATBOT.md](docs/CHATBOT.md)** - Chatbot features and conversational capabilities
-- **[docs/START.md](docs/START.md)** - Quick start guide
+- **[docs/QUICKSTART.md](docs/QUICKSTART.md)** - Get started in 5 minutes
+- **[docs/DEPLOYMENT_PUBLIC.md](docs/DEPLOYMENT_PUBLIC.md)** - Deployment guide
+- **[api/README.md](api/README.md)** - REST API reference
+- **[docs/CHATBOT.md](docs/CHATBOT.md)** - Chatbot features
+- **[docs/FRONTEND_INTEGRATION.md](docs/FRONTEND_INTEGRATION.md)** - Frontend integration guide
 - **[scripts/README.md](scripts/README.md)** - Utility scripts documentation
