@@ -14,7 +14,7 @@ def is_safe_expression(code):
                                ast.AsyncFunctionDef, ast.ClassDef)):
                 return False
         return True
-    except SyntaxError:
+    except SyntaxError as e:
         # If it fails as expression, try as statement (allows simple assignments)
         try:
             tree = ast.parse(code, mode='exec')
@@ -24,6 +24,9 @@ def is_safe_expression(code):
                     return False
             return True
         except SyntaxError:
+            # Log the actual syntax error for debugging
+            print(f"Syntax error in code validation: {e}")
+            print(f"Code: {code}")
             return False
 
 def generate_code(question):
@@ -54,11 +57,18 @@ def generate_code(question):
     # Fix common mistakes the LLM makes
     original_code = code
     
+    # STEP 0: Fix missing variable in list comprehension: [for r in ...] -> [r for r in ...]
+    code = re.sub(r'\[\s*for\s+(\w+)\s+in\s+', r'[\1 for \1 in ', code)
+    
     # STEP 1: Replace data.get("rows",[]) with data["rows"] - use regex for flexibility
     code = re.sub(r'data\.get\s*\(\s*["\']rows["\']\s*,\s*\[\s*\]\s*\)', 'data["rows"]', code)
     code = re.sub(r'data\.get\s*\(\s*["\']rows["\']\s*\)', 'data["rows"]', code)
     
-    # STEP 2: Fix white_light -> whitelight
+    # STEP 2: Fix common typos
+    code = code.replace('"just"', '"jwst"')  # Common LLM typo
+    code = code.replace("'just'", "'jwst'")
+    
+    # STEP 3: Fix white_light -> whitelight
     code = code.replace('white_light', 'whitelight')
     code = code.replace('white-light', 'whitelight')
     code = code.replace('White_light', 'whitelight')
