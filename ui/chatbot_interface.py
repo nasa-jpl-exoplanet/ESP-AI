@@ -135,21 +135,11 @@ def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
                 
                 messages.append({"role": "user", "content": message})
                 
-                # Try llama3.2 first, fall back to codellama if not available
-                try:
-                    response = ollama.chat(
-                        model="llama3.2",
-                        messages=messages
-                    )
-                except Exception as model_error:
-                    if "not found" in str(model_error):
-                        # Fall back to codellama
-                        response = ollama.chat(
-                            model="codellama",
-                            messages=messages
-                        )
-                    else:
-                        raise
+                # Use smaller, faster model for CPU performance
+                response = ollama.chat(
+                    model="llama3.2:1b",
+                    messages=messages
+                )
                 
                 return response["message"]["content"]
                 

@@ -29,7 +29,7 @@ def is_safe_expression(code):
 def generate_code(question):
     """Generate Python code from natural language question"""
     response = ollama.chat(
-        model="codellama",
+        model="llama3.2:1b",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": question}
