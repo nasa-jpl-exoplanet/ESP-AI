@@ -46,6 +46,26 @@ logger.info(f"Data path: {EXCALIBUR_DATA_PATH}")
 EXCALIBUR_DATA = load_excalibur_data(EXCALIBUR_DATA_PATH)
 logger.info(f"✓ Loaded {len(EXCALIBUR_DATA.get('rows', []))} runs")
 
+# Query cache for common queries
+QUERY_CACHE = {}
+
+def get_cached_or_execute(query_text: str, data: dict):
+    """Check cache first, then execute query if not cached"""
+    if query_text.lower() in QUERY_CACHE:
+        logger.info(f"Cache HIT for query: {query_text[:50]}...")
+        return QUERY_CACHE[query_text.lower()]
+    
+    # Not in cache, execute query
+    logger.info(f"Cache MISS for query: {query_text[:50]}...")
+    code = generate_code(query_text)
+    results = execute_query(code, data)
+    
+    # Cache the results
+    QUERY_CACHE[query_text.lower()] = (code, results)
+    logger.info(f"Cached query: {query_text[:50]}...")
+    
+    return code, results
+
 
 # Request/Response Models
 class ChatRequest(BaseModel):
@@ -106,8 +126,38 @@ async def chat(request: ChatRequest):
         # Convert history format if needed
         history = request.history or []
         
-        # Call chatbot logic with API's loaded data
-        response = chat_with_excalibur(request.message, history, data=EXCALIBUR_DATA)
+        # Check if this is a cached query
+        from ui.chatbot_interface import is_database_query
+        if is_database_query(request.message) and request.message.lower() in QUERY_CACHE:
+            logger.info(f"Cache HIT for chat query: {request.message[:50]}...")
+            code, results = QUERY_CACHE[request.message.lower()]
+            
+            # Format results like the chatbot would
+            from ui.chatbot_interface import format_results_as_text
+            if isinstance(results, list):
+                response = format_results_as_text(results)
+                response += f"\n\n---\n*Query: `{code}`*"
+            else:
+                response = f"Result: {results}\n\n---\n*Query: `{code}`*"
+        else:
+            # Call chatbot logic with API's loaded data
+            response = chat_with_excalibur(request.message, history, data=EXCALIBUR_DATA)
+            
+            # Cache database queries for next time
+            if is_database_query(request.message):
+                # Extract the code from response if it contains it
+                if "Query: `" in response:
+                    import re
+                    match = re.search(r'Query: `([^`]+)`', response)
+                    if match:
+                        code = match.group(1)
+                        # Re-execute to get results for caching
+                        try:
+                            results = execute_query(code, EXCALIBUR_DATA)
+                            QUERY_CACHE[request.message.lower()] = (code, results)
+                            logger.info(f"Cached chat query: {request.message[:50]}...")
+                        except:
+                            pass  # Don't fail if caching fails
         
         logger.info(f"Chat response: {len(response)} chars")
         
@@ -134,12 +184,9 @@ async def query(request: QueryRequest):
     try:
         logger.info(f"Query request: {request.query}")
         
-        # Generate Python code from natural language
-        code = generate_code(request.query)
+        # Check cache first, then generate/execute if needed
+        code, results = get_cached_or_execute(request.query, EXCALIBUR_DATA)
         logger.info(f"Generated code: {code}")
-        
-        # Execute query
-        results = execute_query(code, EXCALIBUR_DATA)
         
         # Ensure results is a list
         if not isinstance(results, list):
