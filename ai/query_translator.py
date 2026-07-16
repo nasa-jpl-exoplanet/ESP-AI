@@ -91,14 +91,35 @@ def execute_query(code, data):
     if not is_safe_expression(code):
         raise ValueError(f"Generated code contains unsafe operations:\n{code}")
     
+    # Allow safe built-in functions
+    safe_builtins = {
+        "len": len,
+        "sum": sum,
+        "list": list,
+        "set": set,
+        "dict": dict,
+        "sorted": sorted,
+        "min": min,
+        "max": max,
+        "any": any,
+        "all": all,
+        "enumerate": enumerate,
+        "zip": zip,
+        "range": range,
+        "str": str,
+        "int": int,
+        "float": float,
+        "bool": bool,
+    }
+    
     try:
         # Try as expression first
         try:
-            return eval(code, {"__builtins__": {}}, {"data": data})
+            return eval(code, {"__builtins__": safe_builtins}, {"data": data})
         except SyntaxError:
             # If expression fails, try as statement
             namespace = {"data": data}
-            exec(code, {"__builtins__": {}}, namespace)
+            exec(code, {"__builtins__": safe_builtins}, namespace)
             # Return the last assigned variable or None
             for key in reversed(list(namespace.keys())):
                 if key != "data":
