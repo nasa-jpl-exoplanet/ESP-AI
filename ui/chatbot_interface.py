@@ -13,7 +13,8 @@ from data.load_excalibur_data import load_excalibur_data
 
 EXCALIBUR_OUTPUT_PATH = "/Users/enguyen/ESP-AI"
 
-# Load data once at startup
+# Load data once at startup (for Gradio interface)
+# API server will pass its own data
 print("Loading EXCALIBUR data...")
 EXCALIBUR_DATA = load_excalibur_data(EXCALIBUR_OUTPUT_PATH)
 print(f"✓ Loaded {len(EXCALIBUR_DATA.get('rows', []))} runs")
@@ -69,8 +70,16 @@ def format_results_as_text(rows: List[dict], limit: int = 10) -> str:
     
     return result
 
-def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
-    """Process user message and return response"""
+def chat_with_excalibur(message: str, history: List[Tuple[str, str]], data=None) -> str:
+    """Process user message and return response
+    
+    Args:
+        message: User's message
+        history: Chat history
+        data: EXCALIBUR data dict (if None, uses module-level EXCALIBUR_DATA)
+    """
+    # Use provided data or fall back to module-level data
+    excalibur_data = data if data is not None else EXCALIBUR_DATA
     
     # Get user's nickname if set
     nickname = USER_PREFERENCES.get('nickname', '')
@@ -92,7 +101,7 @@ def chat_with_excalibur(message: str, history: List[Tuple[str, str]]) -> str:
             try:
                 # Generate and execute query
                 code = generate_code(message)
-                result = execute_query(code, EXCALIBUR_DATA)
+                result = execute_query(code, excalibur_data)
                 
                 # Format results
                 if isinstance(result, list):

@@ -106,8 +106,8 @@ async def chat(request: ChatRequest):
         # Convert history format if needed
         history = request.history or []
         
-        # Call chatbot logic
-        response = chat_with_excalibur(request.message, history)
+        # Call chatbot logic with API's loaded data
+        response = chat_with_excalibur(request.message, history, data=EXCALIBUR_DATA)
         
         logger.info(f"Chat response: {len(response)} chars")
         
