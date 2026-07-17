@@ -144,9 +144,9 @@ def chat_with_excalibur(message: str, history: List[Tuple[str, str]], data=None)
                 
                 messages.append({"role": "user", "content": message})
                 
-                # Use 3b model - balance of speed and accuracy for CPU
+                # Use llama3.2 model for conversational responses
                 response = ollama.chat(
-                    model="llama3.2:3b",
+                    model="llama3.2:latest",
                     messages=messages
                 )
                 

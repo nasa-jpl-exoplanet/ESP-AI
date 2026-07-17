@@ -32,7 +32,7 @@ app = FastAPI(
 # CORS configuration for Gael's frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://excalibur.jpl.nasa.gov"],  # Gael's Merlin page
+    allow_origins=["https://excalibur.jpl.nasa.gov", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
