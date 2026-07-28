@@ -10,7 +10,8 @@ from typing import List, Dict, Any, Tuple
 from ai.query_translator import generate_code, execute_query
 from data.load_excalibur_data import load_excalibur_data
 
-EXCALIBUR_OUTPUT_PATH = "/Users/enguyen/ESP-AI"
+import os as _os
+EXCALIBUR_OUTPUT_PATH = _os.getenv("EXCALIBUR_DATA_PATH", _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 
 def _get_sample_data_with_more_rows():
     """Return expanded sample EXCALIBUR data for better demonstration"""

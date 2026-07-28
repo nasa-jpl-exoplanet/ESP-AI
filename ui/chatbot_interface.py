@@ -11,7 +11,8 @@ import random
 from ai.query_translator import generate_code, execute_query
 from data.load_excalibur_data import load_excalibur_data
 
-EXCALIBUR_OUTPUT_PATH = "/Users/enguyen/ESP-AI"
+import os as _os
+EXCALIBUR_OUTPUT_PATH = _os.getenv("EXCALIBUR_DATA_PATH", _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 
 # Load data once at startup (for Gradio interface)
 # API server will pass its own data
@@ -243,7 +244,7 @@ def create_chatbot_interface():
             
             # Check if custom avatar exists
             import os
-            avatar_path = "/Users/enguyen/ESP-AI/assets/excalibur_logo.png"
+            avatar_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "excalibur_logo.png")
             bot_avatar = avatar_path if os.path.exists(avatar_path) else None
             
             chat_history.append({
