@@ -39,7 +39,7 @@ def main():
     # Get the project root directory (parent of scripts/)
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
-    backup_file = os.path.join(project_root, 'ops.00.sql')
+    backup_file = os.path.join(project_root, 'ops.00.bck')
     output_file = os.path.join(project_root, 'excalibur_runs.json')
     
     print("Extracting EXCALIBUR data from Dawgie backup...")
